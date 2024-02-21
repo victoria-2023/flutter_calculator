@@ -2,6 +2,12 @@
 
 A new Flutter project.
 
+A simple calculator app with:
+- a basic UI and logic
+- a separate screen with a kilometer-to-mile converter
+- history and persistence
+- equation and firestore support 
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.
