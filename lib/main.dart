@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:math_expressions/math_expressions.dart';
 import 'conversion_screen.dart';
 import 'history_screen.dart';
 
@@ -25,55 +26,24 @@ class Calculator extends StatefulWidget {
 
 class _CalculatorState extends State<Calculator> {
   String _output = "0";
-  String _input = "0";
-  double _num1 = 0.0;
-  double _num2 = 0.0;
-  String _operand = "";
+  String _input = "";
 
   buttonPressed(String buttonText) async {
     if (buttonText == "C") {
-      _input = "0";
-      _num1 = 0.0;
-      _num2 = 0.0;
-      _operand = "";
-    } else if (buttonText == "+" || buttonText == "-" || buttonText == "*" || buttonText == "/") {
-      _num1 = double.parse(_input);
-      _operand = buttonText;
-      _input = "0";
-    } else if (buttonText == ".") {
-      if (_input.contains(".")) {
-        return;
-      } else {
-        _input = _input + buttonText;
-      }
+      _input = "";
+      _output = "0";
     } else if (buttonText == "=") {
-      _num2 = double.parse(_input);
-      double result;
-
-      if (_operand == "+") {
-        result = _num1 + _num2;
-      } else if (_operand == "-") {
-        result = _num1 - _num2;
-      } else if (_operand == "*") {
-        result = _num1 * _num2;
-      } else if (_operand == "/") {
-        result = _num1 / _num2;
-      } else {
-        result = 0.0; // Default case, should not happen
-      }
-
-      _input = result.toString();
-      await _saveCalculation('$_num1 $_operand $_num2 = $result');
-
-      _num1 = 0.0;
-      _operand = "";
-      _num2 = 0.0;
+      final result = evaluateExpression(_input);
+      await _saveCalculation('$_input = $result');
+      _input = result; // Update input to result for further calculations
+      _output = result; // Update output to show the result
     } else {
-      _input = _input + buttonText;
+      _input += buttonText; // Build the equation string
+      _output = _input; // Show current equation as output
     }
 
     setState(() {
-      _output = double.parse(_input).toStringAsFixed(2);
+      // This ensures the UI is refreshed with the new output
     });
   }
 
@@ -142,5 +112,18 @@ class _CalculatorState extends State<Calculator> {
         ),
       ),
     );
+  }
+
+  // Implement the evaluateExpression function using math_expressions package
+  String evaluateExpression(String expression) {
+    try {
+      Parser p = Parser();
+      Expression exp = p.parse(expression);
+      ContextModel cm = ContextModel();
+      double eval = exp.evaluate(EvaluationType.REAL, cm);
+      return eval.toString(); // Return the result as a string
+    } catch (e) {
+      return "Error"; // Return an error message or handle it appropriately
+    }
   }
 }
